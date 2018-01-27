@@ -1,13 +1,14 @@
-local RECORD_DT = 0.1
-local BLOCK_HEIGHT = 650
+local RECORD_DT = 0.05
+local BLOCK_HEIGHT = 1000
 
 local mic = {}
 
+newBlock = 0
 function mic.setup()
 	rds = assert(love.audio.getRecordingDevices())
 	sound = {}
 	sound.mic = rds[1]
-	sound.mic:start(8000, 8000, 16, 1)
+	sound.mic:start(8000, 8000, 8, 1)
 	sound.dt = 0
 	return true
 end
@@ -21,13 +22,11 @@ function mic.update(dt)
 		for i = 0, size - 1 do
 			sum = sum + (sound.data:getSample(i) + 0)
 		end
-		local newBlock = math.abs(sum / size) * BLOCK_HEIGHT
+		 newBlock = math.abs(sum / size) * BLOCK_HEIGHT
 		for i = #alturas, 2, -1 do
 			alturas[i] = alturas[i - 1]
-			-- io.write(i, ' ', alturas[i], ' ')
 		end
-		-- io.write('1 ', newBlock, '\n')
-		alturas[1] = newBlock
+		alturas[1] = math.min(newBlock, HEIGHT)
 	end
 end
 

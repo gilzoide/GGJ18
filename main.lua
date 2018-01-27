@@ -1,39 +1,47 @@
-local SPEED = 1
+local SPEED = 2
 local FLOOR, BALL_RADIUS
 local FLOOR_HEIGHT = 50
-local WIDTH, HEIGHT = 1024, 650
-local BLOCK_WIDTH, BLOCK_HEIGHT = 15, 5
-local BLOCK_SPACE = 5
-local NUM_BLOCKS = math.floor(WIDTH / (BLOCK_WIDTH + BLOCK_SPACE))
+WIDTH, HEIGHT = 1024, 650
+local BLOCK_WIDTH, BLOCK_HEIGHT = 10, 5
+local WALL_WIDTH = 10
+local BLOCK_SPACE = 8
+local NUM_BLOCKS = math.ceil(WIDTH / (BLOCK_WIDTH + BLOCK_SPACE))
 
 local mic = require 'mic'
 
 local function respawn()
-	objects.ball.body:setPosition(BALL_RADIUS / 2, HEIGHT/2)
+	objects.ball.body:setPosition(BALL_RADIUS / 2, BALL_RADIUS)
 	objects.ball.body:setLinearVelocity(0, 0)
 end
 
 function love.load()
-
 	love.physics.setMeter(64)
 	world = love.physics.newWorld(0, 9.81*64, true)
 
-	objects = {} -- table to hold all our physical objects
+	objects = {}
 
-	--let's create the ground
+	-- Ground
 	objects.ground = {}
-	objects.ground.body = love.physics.newBody(world, WIDTH/2, HEIGHT - FLOOR_HEIGHT/2) --remember, the shape (the rectangle we create next) anchors to the body from its center, so we have to move it to (650/2, 650-50/2)
-	objects.ground.shape = love.physics.newRectangleShape(WIDTH, FLOOR_HEIGHT) --make a rectangle with a width of 650 and a height of 50
-	objects.ground.fixture = love.physics.newFixture(objects.ground.body, objects.ground.shape); --attach shape to body
+	objects.ground.body = love.physics.newBody(world, WIDTH/2, HEIGHT - FLOOR_HEIGHT/2, 'static')
+	objects.ground.shape = love.physics.newRectangleShape(WIDTH, FLOOR_HEIGHT)
+	objects.ground.fixture = love.physics.newFixture(objects.ground.body, objects.ground.shape)
 	FLOOR = objects.ground.body:getY() - FLOOR_HEIGHT/2
+
+	-- Walls
+	objects.wall = {}
+	objects.wall.body = love.physics.newBody(world, 0, HEIGHT/2, 'static')
+	objects.wall.shape_left = love.physics.newRectangleShape(0, 0, WALL_WIDTH, HEIGHT)
+	objects.wall.shape_right = love.physics.newRectangleShape(WIDTH, 0, WALL_WIDTH, HEIGHT)
+	objects.wall.fixture_left = love.physics.newFixture(objects.wall.body, objects.wall.shape_left)
+	objects.wall.fixture_right = love.physics.newFixture(objects.wall.body, objects.wall.shape_right)
 	
-	--let's create a ball
+	-- Ball
 	objects.ball = {}
 	objects.ball.img = love.graphics.newImage("bolota.png")
 	BALL_RADIUS = objects.ball.img:getWidth() / 2
 	objects.ball.body = love.physics.newBody(world, 0, 0, "dynamic")
 	objects.ball.shape = love.physics.newCircleShape(BALL_RADIUS)
-	objects.ball.fixture = love.physics.newFixture(objects.ball.body, objects.ball.shape, 1) -- Attach fixture to body and give it a density of 1.
+	objects.ball.fixture = love.physics.newFixture(objects.ball.body, objects.ball.shape, 1)
 	objects.ball.fixture:setRestitution(0.5)
 	respawn()
 
@@ -42,8 +50,8 @@ function love.load()
 	for i = 1, NUM_BLOCKS do
 		local obj = {}
 		obj.body = love.physics.newBody(world, (i - 1) * (BLOCK_WIDTH + BLOCK_SPACE), FLOOR, "kinematic")
-		obj.shape = love.physics.newRectangleShape(0, 0, BLOCK_WIDTH, BLOCK_HEIGHT)
-		-- obj.shape = love.physics.newCircleShape(BLOCK_WIDTH)
+		-- obj.shape = love.physics.newRectangleShape(0, 0, BLOCK_WIDTH, BLOCK_HEIGHT)
+		obj.shape = love.physics.newCircleShape(BLOCK_WIDTH)
 		obj.fixture = love.physics.newFixture(obj.body, obj.shape, 1)
 		objects.blocks[i] = obj
 	end
@@ -94,7 +102,11 @@ function love.update(dt)
 end
  
 function love.draw()
-	love.graphics.setColor(72/255, 160/255, 14/255)
+	love.graphics.setColor(0.4, 0.25, 0)
+	love.graphics.polygon("fill", objects.wall.body:getWorldPoints(objects.wall.shape_left:getPoints()))
+	love.graphics.polygon("fill", objects.wall.body:getWorldPoints(objects.wall.shape_right:getPoints()))
+
+	love.graphics.setColor(0.28, 0.62, 0.05)
 	love.graphics.polygon("fill", objects.ground.body:getWorldPoints(objects.ground.shape:getPoints()))
 
 	love.graphics.setColor(1,1,1)
@@ -104,8 +116,10 @@ function love.draw()
 	love.graphics.setColor(0.2, 0.2, 0.2)
 	for i = 1, NUM_BLOCKS do
 		local obj = objects.blocks[i]
-		love.graphics.polygon("fill", obj.body:getWorldPoints(obj.shape:getPoints()))
-		-- local x, y = obj.body:getPosition()
-		-- love.graphics.circle("fill", x, y, BLOCK_WIDTH)
+		-- love.graphics.polygon("fill", obj.body:getWorldPoints(obj.shape:getPoints()))
+		local x, y = obj.body:getPosition()
+		love.graphics.circle("fill", x, y, BLOCK_WIDTH)
 	end
+
+	love.graphics.print(string.format('newBlock: %3.0f', newBlock))
 end
