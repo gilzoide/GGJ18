@@ -1,13 +1,14 @@
 local SPEED = 2
 local FLOOR, BALL_RADIUS
 local FLOOR_HEIGHT = 50
-WIDTH, HEIGHT = 1024, 650
+WIDTH, HEIGHT = 1024, 700
 local BLOCK_WIDTH, BLOCK_HEIGHT = 10, 5
-local WALL_WIDTH = 10
 local BLOCK_SPACE = 8
+local WALL_WIDTH = 10
 local NUM_BLOCKS = math.ceil(WIDTH / (BLOCK_WIDTH + BLOCK_SPACE))
 
 local mic = require 'mic'
+local goal = require 'goal'
 
 local function respawn()
 	objects.ball.body:setPosition(BALL_RADIUS / 2, BALL_RADIUS)
@@ -43,6 +44,7 @@ function love.load()
 	objects.ball.shape = love.physics.newCircleShape(BALL_RADIUS)
 	objects.ball.fixture = love.physics.newFixture(objects.ball.body, objects.ball.shape, 1)
 	objects.ball.fixture:setRestitution(0.5)
+	objects.ball.fixture:setUserData("bolota")
 	respawn()
 
 	--let's create a couple blocks to play around with
@@ -64,9 +66,10 @@ function love.load()
 		love.window.showMessageBox("Error", "Error setting microphone up!", 'error')
 		love.event.quit(1)
 	end
+	goal.setup()
 
 	--initial graphics setup
-	love.graphics.setBackgroundColor(104, 136, 248) --set the background color to a nice blue
+	love.graphics.setBackgroundColor(0.4, 0.7, 1) --set the background color to a nice blue
 	love.window.setMode(WIDTH, HEIGHT) --set the window dimensions to 650 by 650
 end
  
@@ -76,16 +79,20 @@ function love.update(dt)
 	-- checa se bola saiu da tela
 	do
 		local x, y = objects.ball.body:getPosition()
-		if x < 0 or x > WIDTH or y < 0 then
+		if x < 0 or x > WIDTH or y < -BALL_RADIUS then
 			respawn()
+			goal.points = goal.points - 1
+			if goal.points == -1 then
+				love.window.showMessageBox("Parabéns!", "Você é um lixo =D", "warning")
+			end
 		end
 	end
 	
 	-- mexe blocos para altura desejada
 	for i, obj in ipairs(objects.blocks) do
 		local y = obj.body:getY()
-		local altura = alturas[i]
-		obj.body:setLinearVelocity(0, (FLOOR - altura - y) * SPEED)
+		local block_height = alturas[i]
+		obj.body:setLinearVelocity(0, (FLOOR - block_height - y) * SPEED)
 	end 
 
 	-- RESET de debug
@@ -109,6 +116,8 @@ function love.draw()
 	love.graphics.setColor(0.28, 0.62, 0.05)
 	love.graphics.polygon("fill", objects.ground.body:getWorldPoints(objects.ground.shape:getPoints()))
 
+	goal.draw()
+
 	love.graphics.setColor(1,1,1)
 	love.graphics.draw(objects.ball.img, objects.ball.body:getX(), objects.ball.body:getY(),
 			objects.ball.body:getAngle(), nil, nil, BALL_RADIUS, BALL_RADIUS)
@@ -121,5 +130,7 @@ function love.draw()
 		love.graphics.circle("fill", x, y, BLOCK_WIDTH)
 	end
 
-	love.graphics.print(string.format('newBlock: %3.0f', newBlock))
+	love.graphics.setColor(0,0,0)
+	love.graphics.print(string.format('Points: %3d', goal.points),
+			10, 10, nil, 2, 2)
 end

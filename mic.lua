@@ -1,5 +1,5 @@
 local RECORD_DT = 0.05
-local BLOCK_HEIGHT = 1000
+local BLOCK_HEIGHT = 1500
 
 local mic = {}
 
@@ -8,7 +8,7 @@ function mic.setup()
 	rds = assert(love.audio.getRecordingDevices())
 	sound = {}
 	sound.mic = rds[1]
-	sound.mic:start(8000, 8000, 8, 1)
+	sound.mic:start(8000, 8000, 16, 1)
 	sound.dt = 0
 	return true
 end
