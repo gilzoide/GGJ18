@@ -6,13 +6,28 @@ local BLOCK_WIDTH, BLOCK_HEIGHT = 10, 5
 local BLOCK_SPACE = 8
 local WALL_WIDTH = 10
 local NUM_BLOCKS = math.ceil(WIDTH / (BLOCK_WIDTH + BLOCK_SPACE))
+local LIXO_POINTS = -50
+local SPLASH_DELAY = 5
 
 local mic = require 'mic'
 local goal = require 'goal'
+local splash = require 'splash'
 
 local function respawn()
 	objects.ball.body:setPosition(BALL_RADIUS / 2, BALL_RADIUS)
 	objects.ball.body:setLinearVelocity(0, 0)
+end
+
+local function runSceneFor(scene, seconds)
+	local update, draw = love.update, love.draw
+	local _dt = 0
+	love.draw = scene.draw
+	love.update = function(dt)
+		_dt = _dt + dt
+		if _dt > seconds then
+			love.update, love.draw = update, draw
+		end
+	end
 end
 
 function love.load()
@@ -52,7 +67,6 @@ function love.load()
 	for i = 1, NUM_BLOCKS do
 		local obj = {}
 		obj.body = love.physics.newBody(world, (i - 1) * (BLOCK_WIDTH + BLOCK_SPACE), FLOOR, "kinematic")
-		-- obj.shape = love.physics.newRectangleShape(0, 0, BLOCK_WIDTH, BLOCK_HEIGHT)
 		obj.shape = love.physics.newCircleShape(BLOCK_WIDTH)
 		obj.fixture = love.physics.newFixture(obj.body, obj.shape, 1)
 		objects.blocks[i] = obj
@@ -68,6 +82,9 @@ function love.load()
 	end
 	goal.setup()
 
+	splash.setup()
+	runSceneFor(splash, SPLASH_DELAY)
+
 	--initial graphics setup
 	love.graphics.setBackgroundColor(0.4, 0.7, 1) --set the background color to a nice blue
 	love.window.setMode(WIDTH, HEIGHT) --set the window dimensions to 650 by 650
@@ -82,7 +99,7 @@ function love.update(dt)
 		if x < 0 or x > WIDTH or y < -BALL_RADIUS then
 			respawn()
 			goal.points = goal.points - 1
-			if goal.points == -1 then
+			if goal.points == LIXO_POINTS then
 				love.window.showMessageBox("Parabéns!", "Você é um lixo =D", "warning")
 			end
 		end
@@ -124,9 +141,7 @@ function love.draw()
 
 	love.graphics.setColor(0.2, 0.2, 0.2)
 	for i = 1, NUM_BLOCKS do
-		local obj = objects.blocks[i]
-		-- love.graphics.polygon("fill", obj.body:getWorldPoints(obj.shape:getPoints()))
-		local x, y = obj.body:getPosition()
+		local x, y = objects.blocks[i].body:getPosition()
 		love.graphics.circle("fill", x, y, BLOCK_WIDTH)
 	end
 
