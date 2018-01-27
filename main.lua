@@ -13,21 +13,31 @@ local mic = require 'mic'
 local goal = require 'goal'
 local splash = require 'splash'
 
-local function respawn()
-	objects.ball.body:setPosition(BALL_RADIUS / 2, BALL_RADIUS)
+-- Respawn the ball, maybe subtracting points from player.
+local function respawn(subtract)
+	objects.ball.body:setPosition(BALL_RADIUS + WALL_WIDTH, BALL_RADIUS)
 	objects.ball.body:setLinearVelocity(0, 0)
+	if subtract then
+		goal.points = goal.points - 1
+	end
 end
 
+-- Run a scene that implements `draw` method for `seconds` seconds.
+-- Clicking any key or mouse button will skip the scene and return to the previous one.
 local function runSceneFor(scene, seconds)
-	local update, draw = love.update, love.draw
-	local _dt = 0
+	local update, draw, keypressed, mousepressed = love.update, love.draw, love.keypressed, love.mousepressed
+	local _dt, _skip = 0, false
 	love.draw = scene.draw
 	love.update = function(dt)
 		_dt = _dt + dt
-		if _dt > seconds then
-			love.update, love.draw = update, draw
+		if _dt > seconds or _skip then
+			love.update, love.draw, love.keypressed, love.mousepressed = update, draw, keypressed, mousepressed
 		end
 	end
+	local function skip()
+		_skip = true
+	end
+	love.keypressed, love.mousepressed = skip, skip
 end
 
 function love.load()
@@ -58,7 +68,7 @@ function love.load()
 	objects.ball.body = love.physics.newBody(world, 0, 0, "dynamic")
 	objects.ball.shape = love.physics.newCircleShape(BALL_RADIUS)
 	objects.ball.fixture = love.physics.newFixture(objects.ball.body, objects.ball.shape, 1)
-	objects.ball.fixture:setRestitution(0.5)
+	objects.ball.fixture:setRestitution(0.4)
 	objects.ball.fixture:setUserData("bolota")
 	respawn()
 
@@ -77,8 +87,7 @@ function love.load()
 	end
 
 	if not mic.setup() then
-		love.window.showMessageBox("Error", "Error setting microphone up!", 'error')
-		love.event.quit(1)
+		love.window.showMessageBox("Error", "Error setting microphone up.\nPlay with the mouse/touch", 'error')
 	end
 	goal.setup()
 
@@ -91,17 +100,13 @@ function love.load()
 end
  
 function love.update(dt)
-	world:update(dt) --this puts the world into motion
+	world:update(dt)
 	
-	-- checa se bola saiu da tela
-	do
-		local x, y = objects.ball.body:getPosition()
-		if x < 0 or x > WIDTH or y < -BALL_RADIUS then
-			respawn()
-			goal.points = goal.points - 1
-			if goal.points == LIXO_POINTS then
-				love.window.showMessageBox("Parabéns!", "Você é um lixo =D", "warning")
-			end
+	local x, y = objects.ball.body:getPosition()
+	if y < -BALL_RADIUS then
+		respawn(true)
+		if goal.points == LIXO_POINTS then
+			love.window.showMessageBox("Parabéns!", "Você é um lixo =D", "warning")
 		end
 	end
 	
@@ -113,7 +118,7 @@ function love.update(dt)
 	end 
 
 	-- RESET de debug
-	if love.keyboard.isDown("up") then
+	if love.keyboard.isDown("backspace") then
 		respawn()
 	end
 	
@@ -123,6 +128,7 @@ function love.update(dt)
 	end
 
 	mic.update(dt)
+	goal.update(dt)
 end
  
 function love.draw()

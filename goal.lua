@@ -1,8 +1,16 @@
 local GOAL_RADIUS
-local GOAL_Y = 50
+local GOAL_RANDOMPOS_DELAY = 5
+local GOAL_Y = 70
+local GOAL_Y_RANGE = 150
 
 local goal = {}
 goal.points = 0
+goal.dt = 0
+
+local function randPos()
+	goal.body:setPosition(love.math.random(GOAL_RADIUS, WIDTH - GOAL_RADIUS),
+			love.math.random(GOAL_RADIUS, GOAL_Y_RANGE))
+end
 
 local function beginContact(a, b, coll)
 	if a:getUserData() == "cesta" and b:getUserData() == "bolota" or
@@ -27,6 +35,14 @@ function goal.draw()
 	love.graphics.setColor(1,1,1)
 	love.graphics.draw(goal.img, goal.body:getX(), goal.body:getY(), nil, nil, nil,
 			GOAL_RADIUS, GOAL_RADIUS)
+end
+
+function goal.update(dt)
+	goal.dt = goal.dt + dt
+	if goal.dt > GOAL_RANDOMPOS_DELAY then
+		goal.dt = 0
+		randPos()
+	end
 end
 
 return goal
