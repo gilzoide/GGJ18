@@ -4,7 +4,7 @@ local GOAL_Y = 70
 local GOAL_Y_RANGE = 150
 
 local goal = {}
-goal.points = 0
+goal.score = 0
 goal.dt = 0
 
 local function randPos()
@@ -15,7 +15,7 @@ end
 local function beginContact(a, b, coll)
 	if a:getUserData() == "cesta" and b:getUserData() == "bolota" or
 			a:getUserData() == "bolota" and b:getUserData() == "cesta" then
-		goal.points = goal.points + 1
+		goal.score = goal.score + 1
 	end
 end
 
