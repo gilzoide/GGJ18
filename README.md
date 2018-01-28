@@ -19,7 +19,7 @@ Shout that ball *(english)*
 ===========================
 Speak "up and shoot that basket"!
 
-Transmit energy throught the line, transmitting matter (the ball) into the
+Transmit energy through the line, transmitting matter (the ball) into the
 basket using your microphone or mouse/touchscreen. Make as many points as you
 can!
 

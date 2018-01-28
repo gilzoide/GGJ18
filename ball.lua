@@ -51,10 +51,11 @@ function ball.update(dt)
 		end
 	end
 	
-	-- RESET de debug
+	--[[ RESET de debug
 	if love.keyboard.isDown("backspace") then
 		respawn()
 	end
+	--]]
 end
 
 function ball.draw()
