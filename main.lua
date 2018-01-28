@@ -57,6 +57,7 @@ function love.load()
 	goal.setup()
 	credits.setup()
 	splash.setup()
+	messages.setup()
 
 	runSceneFor(splash, SPLASH_DELAY)
 
@@ -72,6 +73,7 @@ function love.update(dt)
 	block.update(dt)
 	mic.update(dt)
 	goal.update(dt)
+	messages.update(dt)
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -108,5 +110,6 @@ function love.draw()
 	goal.draw()
 	ball.draw()
 	block.draw()
+	messages.draw()
 end
 

@@ -1,3 +1,6 @@
+local RESIZE_SPEED = 2
+local MAX_RESIZE = 5
+
 local messages = {}
 
 local pt = {
@@ -34,6 +37,34 @@ local en = {
 messages.__index = en
 function messages.toggle()
 	messages.__index = messages.__index == en and pt or en
+end
+
+function messages.setup()
+	messages.font = love.graphics.newFont("font.ttf", 50)
+	messages.txt = love.graphics.newText(messages.font, [[
+ RAÇA CAASO!
+XUPA FEDERAL!]])
+end
+
+local xupa_federupa
+function messages.update(dt)
+	if love.keyboard.isDown('x') then
+		xupa_federupa = 'always'
+		messages.dt = (messages.dt or 0) + dt
+	else
+		xupa_federupa = nil
+		messages.dt = nil
+	end
+end
+
+function messages.draw()
+	if xupa_federupa then
+		local w, h = messages.txt:getDimensions()
+		local scale = (messages.dt * RESIZE_SPEED) % MAX_RESIZE
+		love.graphics.setColor(1, 1, 0)
+		love.graphics.draw(messages.txt, WIDTH/2, HEIGHT/2,
+				nil, scale, scale, w/2, h/2)
+	end
 end
 
 return setmetatable(messages, messages)
