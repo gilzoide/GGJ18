@@ -41,12 +41,18 @@ function block.update(dt)
 
 	if love.mouse.isDown(1) then
 		block.up = (block.up or 0) + dt
-		if block.dt > block.PUSH_DELAY then
-			block.dt = 0
-			block.push_height(block.up * SPEED)
-		end
+		block.push_height(block.up * SPEED)
 	else
 		block.up = false
+	end
+
+	-- Transmit energy
+	if block.dt > block.PUSH_DELAY then
+		block.dt = 0
+		for i = #block.heights, 1, -1 do
+			block.heights[i] = block.heights[i - 1] or 0
+		end
+		block.heights[0] = nil
 	end
 end
 
@@ -59,10 +65,7 @@ function block.draw()
 end
 
 function block.push_height(val)
-	for i = #block.heights, 2, -1 do
-		block.heights[i] = block.heights[i - 1]
-	end
-	block.heights[1] = math.min(val * BLOCK_Y_RANGE, HEIGHT)
+	block.heights[0] = math.min(val * BLOCK_Y_RANGE, HEIGHT)
 end
 
 return block

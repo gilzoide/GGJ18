@@ -1,4 +1,4 @@
-local FLOOR_HEIGHT
+local FLOOR_HEIGHT = 70
 WIDTH, HEIGHT = 1024, 700
 local WALL_WIDTH = 10
 local SPLASH_DELAY = 5
@@ -10,6 +10,7 @@ local splash = require 'splash'
 local block = require 'block'
 local ball = require 'ball'
 local credits = require 'credits'
+local messages = require 'messages'
 
 -- Run a scene that implements `draw` method for `seconds` seconds.
 -- Clicking any key or mouse button will skip the scene and return to the previous one.
@@ -30,12 +31,13 @@ local function runSceneFor(scene, seconds)
 end
 
 function love.load()
+	font = love.graphics.newFont("font.ttf", 20)
+	love.graphics.setFont(font)
+
 	love.physics.setMeter(64)
 	world = love.physics.newWorld(0, 9.81*64, true)
 
 	ground = {}
-	ground.img = love.graphics.newImage("ground.png")
-	FLOOR_HEIGHT = ground.img:getHeight()
 	ground.body = love.physics.newBody(world, WIDTH/2, HEIGHT - FLOOR_HEIGHT/2, 'static')
 	ground.shape = love.physics.newRectangleShape(WIDTH, FLOOR_HEIGHT)
 	ground.fixture = love.physics.newFixture(ground.body, ground.shape)
@@ -51,9 +53,7 @@ function love.load()
 	
 	ball.setup()
 	block.setup()
-	if not mic.setup() then
-		love.window.showMessageBox("Error", "Error setting microphone up.\nPlay with the mouse/touch", 'error')
-	end
+	mic.setup()
 	goal.setup()
 	credits.setup()
 	splash.setup()
@@ -68,19 +68,26 @@ end
 function love.update(dt)
 	world:update(dt)
 
-	if love.keyboard.isDown('c') then
-		runSceneFor(credits, CREDITS_DELAY)
-	elseif love.keyboard.isDown('s') then
-		runSceneFor(splash, SPLASH_DELAY)
-	elseif love.keyboard.isDown('h') then
-		print('TODO')
-	elseif love.keyboard.isDown('q') then
-		love.event.quit()
-	end
 	ball.update(dt)
 	block.update(dt)
 	mic.update(dt)
 	goal.update(dt)
+end
+
+function love.keypressed(key, scancode, isrepeat)
+	if not isrepeat then
+		if key == 'c' then
+			runSceneFor(credits, CREDITS_DELAY)
+		elseif key == 's' then
+			runSceneFor(splash, SPLASH_DELAY)
+		elseif key == 'l' then
+			messages.toggle()
+		elseif key == 'q' then
+			love.event.quit()
+		elseif key == 'm' then
+			mic.toggle()
+		end
+	end
 end
  
 function love.draw()
@@ -88,14 +95,18 @@ function love.draw()
 	love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape_left:getPoints()))
 	love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape_right:getPoints()))
 
-	love.graphics.draw(ground.img, 0, ground.body:getY() - FLOOR_HEIGHT/2, nil, nil, nil)
+	love.graphics.setColor(0.28, 0.62, 0.05)
+	love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
+	love.graphics.setColor(0,0,0)
+	love.graphics.print(table.concat(messages.keys, '  |  '),
+			0, ground.body:getY() - FLOOR_HEIGHT/4)
+
+	love.graphics.setColor(0,0,0)
+	love.graphics.print(string.format('%s: %3d', messages.score, goal.score),
+			10, 10)
 
 	goal.draw()
 	ball.draw()
 	block.draw()
-
-	love.graphics.setColor(0,0,0)
-	love.graphics.print(string.format('Score: %3d', goal.score),
-			10, 10, nil, 2, 2)
 end
 
