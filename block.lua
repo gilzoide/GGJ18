@@ -1,7 +1,6 @@
 local BLOCK_RADIUS = 10
 local BLOCK_SPACE = 8
 local NUM_BLOCKS = math.ceil(WIDTH / (BLOCK_RADIUS + BLOCK_SPACE))
-print(NUM_BLOCKS)
 local SPEED = 2
 local BLOCK_Y_RANGE = 1500
 local PUSH_DELAY = 0.05
