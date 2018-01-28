@@ -20,7 +20,7 @@ local BLOCK_SPACE = 8
 local NUM_BLOCKS = math.ceil(WIDTH / (BLOCK_RADIUS + BLOCK_SPACE))
 local SPEED = 2
 local MOUSE_UP_FACTOR = 4
-local BLOCK_Y_RANGE = 1500
+local BLOCK_Y_RANGE = love.system.getOS() == "Windows" and 999999 or 1500 -- HAHAHack
 local PUSH_DELAY = 0.05
 
 local block = {}
