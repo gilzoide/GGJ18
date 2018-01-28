@@ -2,6 +2,7 @@ local BLOCK_RADIUS = 10
 local BLOCK_SPACE = 8
 local NUM_BLOCKS = math.ceil(WIDTH / (BLOCK_RADIUS + BLOCK_SPACE))
 local SPEED = 2
+local MOUSE_UP_FACTOR = 4
 local BLOCK_Y_RANGE = 1500
 local PUSH_DELAY = 0.05
 
@@ -41,7 +42,7 @@ function block.update(dt)
 
 	if love.mouse.isDown(1) then
 		block.up = (block.up or 0) + dt
-		block.push_height(block.up * SPEED)
+		block.push_height(block.up * MOUSE_UP_FACTOR)
 	else
 		block.up = false
 	end

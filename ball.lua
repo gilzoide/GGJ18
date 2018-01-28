@@ -26,8 +26,8 @@ function ball.setup()
 end
 
 function ball.update(dt)
-	local y = ball.body:getY()
-	if y < -2 * BALL_RADIUS then
+	local x, y = ball.body:getPosition()
+	if x < 0 or x > WIDTH or y < -2 * BALL_RADIUS then
 		respawn(true)
 		if goal.score == LIXO_POINTS then
 			love.window.showMessageBox("Parabéns!", "Você é um lixo =D", "warning")
